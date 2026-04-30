@@ -24,11 +24,7 @@ export default function Profile() {
 
   const [savedMessage, setSavedMessage] = useState("");
 
-  const assignedProject = {
-    name: "Project Alpha",
-    location: "Noida Sector 62",
-    startDate: "12 Apr 2026",
-  };
+  
 
   const handleSave = () => {
     localStorage.setItem("profileData", JSON.stringify(form));
