@@ -46,7 +46,7 @@ export default function Login() {
               </div>
 
               <h1 className="text-2xl font-bold text-white">
-                Sruthika Constructions
+                Towers
               </h1>
             </div>
 
@@ -92,7 +92,7 @@ export default function Login() {
               </div>
 
               <h1 className="text-base font-semibold text-slate-900">
-                Sruthika Constructions
+                Towers
               </h1>
             </div>
 

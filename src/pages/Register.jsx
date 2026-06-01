@@ -52,7 +52,7 @@ export default function Register() {
 
             <div>
               <h1 className="text-2xl xl:text-3xl font-bold text-white leading-tight">
-                Sruthika Constructions
+               Towers
               </h1>
               <p className="text-sm text-slate-300">Build Smarter</p>
             </div>
