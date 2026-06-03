@@ -24,6 +24,8 @@ export function getDefaultEmployees() {
       mobile: "9876543210",
       aadhar: "123456789012",
       monthlySalary: "25000",
+      trainingDurationStart: "",
+      trainingDurationEnd: "",
     },
   ];
 }

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import AdminLayout from "../components/AdminLayout";
 import { useApp } from "../context/AppContext";
-import { isPresent, maskAadhar } from "../utils/hrUtils";
+import { getAttendanceStatus, isAbsent, isPresent, maskAadhar } from "../utils/hrUtils";
 
 export default function Attendance() {
   const { employees, attendance, setAttendance } = useApp();
@@ -10,19 +10,19 @@ export default function Attendance() {
     `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
   );
 
-  const togglePresent = (employeeId, checked) => {
+  const setAttendanceStatus = (employeeId, status) => {
     setAttendance((prev) => {
       const filtered = prev.filter(
         (r) => !(r.employeeId === employeeId && r.date === selectedDate)
       );
-      if (!checked) return filtered;
+      if (!status) return filtered;
       return [
         ...filtered,
         {
           id: `att-${employeeId}-${selectedDate}`,
           employeeId,
           date: selectedDate,
-          status: "present",
+          status,
         },
       ];
     });
@@ -30,10 +30,12 @@ export default function Attendance() {
 
   const daySummary = useMemo(() => {
     let present = 0;
+    let absent = 0;
     employees.forEach((emp) => {
-      if (isPresent(attendance, emp.employeeId, selectedDate)) present += 1;
+      const status = getAttendanceStatus(attendance, emp.employeeId, selectedDate);
+      if (status === "present") present += 1;
+      else if (status === "absent") absent += 1;
     });
-    const absent = employees.length - present;
     return { present, absent };
   }, [employees, attendance, selectedDate]);
 
@@ -54,8 +56,8 @@ export default function Attendance() {
     <AdminLayout>
       <div className="space-y-6">
         <p className="text-sm text-muted-foreground">
-          Select a date, then check employees who are present. Uncheck to remove
-          attendance for that day.
+          Select a date, then mark each employee as present or absent using the
+          checkboxes. Only one status can be selected per employee per day.
         </p>
 
         <div>
@@ -90,11 +92,14 @@ export default function Attendance() {
         </div>
 
         <div className="bg-card rounded-xl border border-border overflow-x-auto">
-          <table className="w-full text-sm border-collapse min-w-[800px]">
+          <table className="w-full text-sm border-collapse min-w-[880px]">
             <thead>
               <tr className="bg-secondary/50">
                 <th className="text-center py-3 px-3 border-b border-r border-border w-14">
                   Present
+                </th>
+                <th className="text-center py-3 px-3 border-b border-r border-border w-14">
+                  Absent
                 </th>
                 <th className="text-left py-3 px-4 border-b border-r border-border">
                   Name
@@ -115,7 +120,12 @@ export default function Attendance() {
             </thead>
             <tbody>
               {employees.map((emp) => {
-                const checked = isPresent(
+                const presentChecked = isPresent(
+                  attendance,
+                  emp.employeeId,
+                  selectedDate
+                );
+                const absentChecked = isAbsent(
                   attendance,
                   emp.employeeId,
                   selectedDate
@@ -124,18 +134,41 @@ export default function Attendance() {
                   <tr
                     key={emp.id}
                     className={`hover:bg-secondary/20 transition ${
-                      checked ? "bg-green-50/50 dark:bg-green-950/10" : ""
+                      presentChecked
+                        ? "bg-green-50/50 dark:bg-green-950/10"
+                        : absentChecked
+                          ? "bg-red-50/50 dark:bg-red-950/10"
+                          : ""
                     }`}
                   >
                     <td className="py-3 px-3 border-b border-r border-border text-center">
                       <input
                         type="checkbox"
-                        checked={checked}
-                        onChange={(e) =>
-                          togglePresent(emp.employeeId, e.target.checked)
-                        }
+                        checked={presentChecked}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setAttendanceStatus(emp.employeeId, "present");
+                          } else if (presentChecked) {
+                            setAttendanceStatus(emp.employeeId, null);
+                          }
+                        }}
                         className="w-5 h-5 rounded border-border text-primary focus:ring-primary/30 cursor-pointer"
                         aria-label={`Mark ${emp.name} present`}
+                      />
+                    </td>
+                    <td className="py-3 px-3 border-b border-r border-border text-center">
+                      <input
+                        type="checkbox"
+                        checked={absentChecked}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setAttendanceStatus(emp.employeeId, "absent");
+                          } else if (absentChecked) {
+                            setAttendanceStatus(emp.employeeId, null);
+                          }
+                        }}
+                        className="w-5 h-5 rounded border-border text-red-600 focus:ring-red-500/30 cursor-pointer"
+                        aria-label={`Mark ${emp.name} absent`}
                       />
                     </td>
                     <td className="py-3 px-4 border-b border-r border-border font-medium">
@@ -159,7 +192,7 @@ export default function Attendance() {
               {employees.length === 0 && (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="py-10 text-center text-muted-foreground"
                   >
                     Add employees first to take attendance.

@@ -41,6 +41,8 @@ const emptyForm = {
   mobile: "",
   aadhar: "",
   monthlySalary: "",
+  trainingDurationStart: "",
+  trainingDurationEnd: "",
 };
 
 export default function Employees() {
@@ -89,12 +91,22 @@ export default function Employees() {
     );
     if (duplicate) return alert("Employee ID already exists");
 
+    if (
+      form.trainingDurationStart &&
+      form.trainingDurationEnd &&
+      form.trainingDurationStart > form.trainingDurationEnd
+    ) {
+      return alert("Training end date must be on or after start date");
+    }
+
     const payload = {
       name: form.name.trim(),
       employeeId: empIdUpper,
       mobile: form.mobile.trim(),
       aadhar: form.aadhar.trim().replace(/\s/g, ""),
       monthlySalary: form.monthlySalary.toString().trim(),
+      trainingDurationStart: form.trainingDurationStart || "",
+      trainingDurationEnd: form.trainingDurationEnd || "",
     };
 
     if (editingId) {
@@ -118,6 +130,8 @@ export default function Employees() {
       mobile: emp.mobile || "",
       aadhar: emp.aadhar || "",
       monthlySalary: emp.monthlySalary ?? "",
+      trainingDurationStart: emp.trainingDurationStart || "",
+      trainingDurationEnd: emp.trainingDurationEnd || "",
     });
     setOpenPanel(true);
   };
@@ -165,15 +179,22 @@ export default function Employees() {
           </div>
 
           <div className="bg-card rounded-xl border border-border overflow-x-auto">
-            <table className="w-full text-sm border-collapse min-w-[720px]">
+            <table className="w-full text-sm border-collapse min-w-[900px]">
               <thead>
                 <tr className="bg-secondary/50">
-                  {["Name", "Employee ID", "Mobile", "Aadhar", "Salary", "Actions"].map(
-                    (h, i) => (
+                  {[
+                    "Name",
+                    "Employee ID",
+                    "Mobile",
+                    "Aadhar",
+                    "Salary",
+                    "Training Period",
+                    "Actions",
+                  ].map((h, i) => (
                       <th
                         key={h}
                         className={`py-3 px-4 border-b border-r border-border font-semibold ${
-                          i === 5 ? "text-right" : "text-left"
+                          i === 6 ? "text-right" : "text-left"
                         }`}
                       >
                         {h}
@@ -195,6 +216,11 @@ export default function Employees() {
                     </td>
                     <td className="py-3 px-4 border-b border-r border-border">
                       ₹{Number(emp.monthlySalary).toLocaleString("en-IN")}
+                    </td>
+                    <td className="py-3 px-4 border-b border-r border-border text-xs">
+                      {emp.trainingDurationStart && emp.trainingDurationEnd
+                        ? `${emp.trainingDurationStart} — ${emp.trainingDurationEnd}`
+                        : emp.trainingDurationStart || emp.trainingDurationEnd || "—"}
                     </td>
                     <td className="py-3 px-4 border-b border-border text-right">
                       <div className="flex justify-end gap-2">
@@ -218,7 +244,7 @@ export default function Employees() {
                 ))}
                 {paginated.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-10 text-center text-muted-foreground">
+                    <td colSpan={7} className="py-10 text-center text-muted-foreground">
                       No employees found.
                     </td>
                   </tr>
@@ -295,6 +321,27 @@ export default function Employees() {
             onChange={(e) => setForm((p) => ({ ...p, monthlySalary: e.target.value }))}
             placeholder="Amount in ₹"
           />
+          <div>
+            <p className="text-sm font-medium text-foreground mb-2">Training duration period</p>
+            <div className="grid grid-cols-1 gap-3">
+              <LabeledInput
+                label="Start date"
+                type="date"
+                value={form.trainingDurationStart}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, trainingDurationStart: e.target.value }))
+                }
+              />
+              <LabeledInput
+                label="End date"
+                type="date"
+                value={form.trainingDurationEnd}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, trainingDurationEnd: e.target.value }))
+                }
+              />
+            </div>
+          </div>
           <button
             type="button"
             onClick={handleSave}

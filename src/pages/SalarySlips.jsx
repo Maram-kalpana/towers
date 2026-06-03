@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { Download } from "lucide-react";
+import { Download, X } from "lucide-react";
 import html2canvas from "html2canvas";
 import AdminLayout from "../components/AdminLayout";
 import { useApp } from "../context/AppContext";
@@ -93,6 +93,7 @@ export default function SalarySlips() {
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
+  const [slipModalOpen, setSlipModalOpen] = useState(false);
   const slipRef = useRef(null);
 
   const periodLabel = `${MONTH_NAMES[month - 1]} ${year}`;
@@ -117,6 +118,15 @@ export default function SalarySlips() {
     );
   }, [selectedEmployee, attendance, year, month]);
 
+  const openSlipModal = (employeeId) => {
+    setSelectedEmployeeId(employeeId);
+    setSlipModalOpen(true);
+  };
+
+  const closeSlipModal = () => {
+    setSlipModalOpen(false);
+  };
+
   const downloadSlip = async () => {
     if (!slipRef.current || !selectedEmployee) return;
     try {
@@ -137,8 +147,8 @@ export default function SalarySlips() {
     <AdminLayout>
       <div className="space-y-6">
         <p className="text-sm text-muted-foreground">
-          Click an employee name, then choose month and year to view present and
-          absent details and generate a salary slip.
+          Choose month and year, then click an employee to view their salary slip
+          in a popup with present and absent details.
         </p>
 
         <div className="flex flex-wrap gap-4">
@@ -178,7 +188,6 @@ export default function SalarySlips() {
           </div>
           <ul className="divide-y divide-border">
             {employees.map((emp) => {
-              const active = selectedEmployeeId === emp.id;
               const summary = summarizeAttendance(
                 attendance,
                 emp.employeeId,
@@ -189,10 +198,8 @@ export default function SalarySlips() {
                 <li key={emp.id}>
                   <button
                     type="button"
-                    onClick={() => setSelectedEmployeeId(emp.id)}
-                    className={`w-full text-left px-4 py-3 flex flex-wrap items-center justify-between gap-2 transition hover:bg-secondary/50 ${
-                      active ? "bg-primary/10 border-l-4 border-l-primary" : ""
-                    }`}
+                    onClick={() => openSlipModal(emp.id)}
+                    className="w-full text-left px-4 py-3 flex flex-wrap items-center justify-between gap-2 transition hover:bg-secondary/50"
                   >
                     <div>
                       <p className="font-semibold text-foreground">{emp.name}</p>
@@ -217,60 +224,88 @@ export default function SalarySlips() {
             )}
           </ul>
         </div>
+      </div>
 
-        {selectedEmployee && breakdown && attendanceDetail && (
-          <div className="space-y-4 border-t border-border pt-6">
-            <h3 className="text-lg font-bold">
-              {selectedEmployee.name} — {periodLabel}
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
-              <div className="rounded-xl border border-green-200 bg-green-50 dark:bg-green-950/20 p-5">
-                <p className="text-sm font-semibold text-green-800 mb-1">Present</p>
-                <p className="text-3xl font-bold text-green-700">
-                  {attendanceDetail.present} days
-                </p>
-                {attendanceDetail.presentDates.length > 0 ? (
-                  <p className="text-xs text-green-800/80 mt-3 leading-relaxed">
-                    {attendanceDetail.presentDates.join(", ")}
-                  </p>
-                ) : (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    No present marks for this month.
-                  </p>
-                )}
+      {slipModalOpen && selectedEmployee && breakdown && attendanceDetail && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          onClick={closeSlipModal}
+        >
+          <div
+            className="bg-card rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-border shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-3 px-5 py-4 border-b border-border bg-card">
+              <div>
+                <h3 className="text-lg font-bold">
+                  {selectedEmployee.name} — {periodLabel}
+                </h3>
+                <p className="text-xs text-muted-foreground">Salary slip preview</p>
               </div>
-              <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/20 p-5">
-                <p className="text-sm font-semibold text-red-800 mb-1">Absent</p>
-                <p className="text-3xl font-bold text-red-700">
-                  {attendanceDetail.absent} days
-                </p>
-                <p className="text-xs text-muted-foreground mt-3">
-                  Unmarked or unchecked days in {periodLabel} count as absent (
-                  {attendanceDetail.daysInMonth} days in month).
-                </p>
-              </div>
+              <button
+                type="button"
+                onClick={closeSlipModal}
+                className="p-2 rounded-lg hover:bg-secondary"
+                aria-label="Close salary slip"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <button
-              type="button"
-              onClick={downloadSlip}
-              className="h-11 px-5 rounded-xl bg-primary text-white text-sm font-semibold flex items-center gap-2 hover:opacity-90"
-            >
-              <Download className="w-4 h-4" />
-              Download Salary Slip
-            </button>
+            <div className="p-5 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="rounded-xl border border-green-200 bg-green-50 dark:bg-green-950/20 p-5">
+                  <p className="text-sm font-semibold text-green-800 mb-1">Present</p>
+                  <p className="text-3xl font-bold text-green-700">
+                    {attendanceDetail.present} days
+                  </p>
+                  {attendanceDetail.presentDates.length > 0 ? (
+                    <p className="text-xs text-green-800/80 mt-3 leading-relaxed">
+                      {attendanceDetail.presentDates.join(", ")}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      No present marks for this month.
+                    </p>
+                  )}
+                </div>
+                <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/20 p-5">
+                  <p className="text-sm font-semibold text-red-800 mb-1">Absent</p>
+                  <p className="text-3xl font-bold text-red-700">
+                    {attendanceDetail.absent} days
+                  </p>
+                  {attendanceDetail.absentDates?.length > 0 ? (
+                    <p className="text-xs text-red-800/80 mt-3 leading-relaxed">
+                      {attendanceDetail.absentDates.join(", ")}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      No absent marks for this month.
+                    </p>
+                  )}
+                </div>
+              </div>
 
-            <div ref={slipRef}>
-              <SalarySlipDocument
-                employee={selectedEmployee}
-                breakdown={breakdown}
-                periodLabel={periodLabel}
-              />
+              <button
+                type="button"
+                onClick={downloadSlip}
+                className="h-11 px-5 rounded-xl bg-primary text-white text-sm font-semibold flex items-center gap-2 hover:opacity-90"
+              >
+                <Download className="w-4 h-4" />
+                Download Salary Slip
+              </button>
+
+              <div ref={slipRef}>
+                <SalarySlipDocument
+                  employee={selectedEmployee}
+                  breakdown={breakdown}
+                  periodLabel={periodLabel}
+                />
+              </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }

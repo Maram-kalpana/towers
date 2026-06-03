@@ -21,13 +21,19 @@ export function getMonthDates(year, month) {
   });
 }
 
-export function isPresent(records, employeeId, date) {
-  return records.some(
-    (r) =>
-      r.employeeId === employeeId &&
-      r.date === date &&
-      r.status === "present"
+export function getAttendanceStatus(records, employeeId, date) {
+  const record = records.find(
+    (r) => r.employeeId === employeeId && r.date === date
   );
+  return record?.status ?? null;
+}
+
+export function isPresent(records, employeeId, date) {
+  return getAttendanceStatus(records, employeeId, date) === "present";
+}
+
+export function isAbsent(records, employeeId, date) {
+  return getAttendanceStatus(records, employeeId, date) === "absent";
 }
 
 export function summarizeAttendance(records, employeeId, year, month) {
@@ -35,20 +41,24 @@ export function summarizeAttendance(records, employeeId, year, month) {
   const daysInMonth = getDaysInMonth(year, month);
   const dates = getMonthDates(year, month);
 
-  const presentDates = records
-    .filter(
-      (r) =>
-        r.employeeId === employeeId &&
-        r.date.startsWith(monthStr) &&
-        r.status === "present"
-    )
+  const monthRecords = records.filter(
+    (r) => r.employeeId === employeeId && r.date.startsWith(monthStr)
+  );
+
+  const presentDates = monthRecords
+    .filter((r) => r.status === "present")
+    .map((r) => r.date)
+    .sort();
+
+  const absentDates = monthRecords
+    .filter((r) => r.status === "absent")
     .map((r) => r.date)
     .sort();
 
   const present = presentDates.length;
-  const absent = daysInMonth - present;
+  const absent = absentDates.length;
 
-  return { present, absent, daysInMonth, presentDates, dates };
+  return { present, absent, daysInMonth, presentDates, absentDates, dates };
 }
 
 export function calculateSalary(employee, records, year, month) {
