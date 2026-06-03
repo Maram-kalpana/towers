@@ -3,8 +3,9 @@ import { AppContext } from "./context";
 import {
   emptyReports,
   getDefaultProjects,
-  getDefaultUsers,
   getDefaultWorkDetails,
+  getDefaultEmployees,
+  getDefaultAttendance,
 } from "../data/erpSeed";
 
 const LS_KEY = "erp_app_state";
@@ -14,7 +15,7 @@ function loadPersisted() {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) {
       const data = JSON.parse(raw);
-      if (data?.projects && data?.users) {
+      if (data?.projects && data?.employees) {
         return data;
       }
     }
@@ -29,8 +30,9 @@ function getInitialState() {
   if (saved) {
     return {
       projects: saved.projects,
-      users: saved.users,
       workDetails: saved.workDetails ?? getDefaultWorkDetails(),
+      employees: saved.employees ?? getDefaultEmployees(),
+      attendance: saved.attendance ?? getDefaultAttendance(),
       reports: {
         ...emptyReports(),
         ...saved.reports,
@@ -39,8 +41,9 @@ function getInitialState() {
   }
   return {
     projects: getDefaultProjects(),
-    users: getDefaultUsers(),
     workDetails: getDefaultWorkDetails(),
+    employees: getDefaultEmployees(),
+    attendance: getDefaultAttendance(),
     reports: emptyReports(),
   };
 }
@@ -59,27 +62,36 @@ export const AppProvider = ({ children }) => {
     initialRef.current = getInitialState();
   }
   const [projects, setProjects] = useState(initialRef.current.projects);
-  const [users, setUsers] = useState(initialRef.current.users);
   const [workDetails, setWorkDetails] = useState(initialRef.current.workDetails);
+  const [employees, setEmployees] = useState(initialRef.current.employees);
+  const [attendance, setAttendance] = useState(initialRef.current.attendance);
   const [reports] = useState(initialRef.current.reports);
 
   useEffect(() => {
     localStorage.setItem(
       LS_KEY,
-      JSON.stringify({ projects, users, workDetails, reports })
+      JSON.stringify({
+        projects,
+        workDetails,
+        employees,
+        attendance,
+        reports,
+      })
     );
-  }, [projects, users, workDetails, reports]);
+  }, [projects, workDetails, employees, attendance, reports]);
 
   const value = useMemo(
     () => ({
       projects,
       setProjects,
-      users,
-      setUsers,
       workDetails,
       setWorkDetails,
+      employees,
+      setEmployees,
+      attendance,
+      setAttendance,
     }),
-    [projects, users, workDetails]
+    [projects, workDetails, employees, attendance]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

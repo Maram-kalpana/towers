@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { FolderKanban, Users, ClipboardList, ChevronDown } from "lucide-react";
+import { FolderKanban, UserPlus, ClipboardList, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../components/AdminLayout";
 import { useApp } from "../context/AppContext";
@@ -16,13 +16,13 @@ const statsConfig = [
     path: "/dashboard/projects",
   },
   {
-    title: "Users",
-    key: "users",
-    icon: Users,
+    title: "Employees",
+    key: "employees",
+    icon: UserPlus,
     bgClass: "bg-[#F0FDF4] dark:bg-[#0A1A17]",
     iconClass: "text-[#22C55E]",
     delay: 0.1,
-    path: "/dashboard/users",
+    path: "/dashboard/employees",
   },
   {
     title: "Work Details",
@@ -37,7 +37,7 @@ const statsConfig = [
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { projects, users, workDetails } = useApp();
+  const { projects, employees, workDetails } = useApp();
 
   const [selectedProject, setSelectedProject] = useState(() =>
     projects.length > 0 ? projects[0].name : ""
@@ -48,7 +48,7 @@ export default function Dashboard() {
 
   const counts = {
     projects: projects.length,
-    users: users.length,
+    employees: employees.length,
     workDetails: workDetails.length,
   };
 
@@ -254,10 +254,10 @@ export default function Dashboard() {
               </h3>
               <div className="border-t pt-5 border-gray-100 dark:border-white/10">
                 <div className="text-6xl font-light leading-none mb-2 text-gray-900 dark:text-white">
-                  {users.length}
+                  {employees.length}
                 </div>
                 <p className="text-base text-gray-500 dark:text-gray-400">
-                  users registered in management
+                  employees with ID cards &amp; payroll
                 </p>
               </div>
             </motion.div>

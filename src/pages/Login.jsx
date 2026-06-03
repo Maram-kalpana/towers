@@ -173,6 +173,15 @@ export default function Login() {
                 Register
               </span>
             </p>
+            <p className="mt-2 text-sm text-center text-slate-500">
+              Employee?{" "}
+              <span
+                className="text-blue-600 cursor-pointer font-medium"
+                onClick={() => navigate("/employee")}
+              >
+                Download ID card
+              </span>
+            </p>
 
           </div>
         </div>

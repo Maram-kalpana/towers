@@ -3,7 +3,6 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   FolderKanban,
-  Users,
   ClipboardList,
   ChevronLeft,
   ChevronRight,
@@ -12,6 +11,9 @@ import {
   Briefcase,
   Cog,
   UserCircle,
+  UserPlus,
+  CalendarCheck,
+  Receipt,
 } from "lucide-react";
 import logo from "../assets/logo.png";
 
@@ -103,7 +105,9 @@ export default function Sidebar({ isOpen, onClose }) {
       icon: Briefcase,
       items: [
         { label: "Projects", icon: FolderKanban, path: "/dashboard/projects" },
-        { label: "Users", icon: Users, path: "/dashboard/users" },
+        { label: "Employees", icon: UserPlus, path: "/dashboard/employees" },
+        { label: "Attendance", icon: CalendarCheck, path: "/dashboard/attendance" },
+        { label: "Salary Slips", icon: Receipt, path: "/dashboard/salary-slips" },
       ],
     },
     {

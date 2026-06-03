@@ -55,7 +55,7 @@ function LabeledSelect({ label, value, onChange, children }) {
 }
 
 const Projects = () => {
-  const { projects, setProjects, users } = useApp();
+  const { projects, setProjects, employees } = useApp();
   const [search, setSearch] = useState("");
   const [openAddPanel, setOpenAddPanel] = useState(false);
   const [openEditPanel, setOpenEditPanel] = useState(false);
@@ -76,7 +76,7 @@ const Projects = () => {
   }, [search]);
 
   const getManagerName = (managerId) => {
-    const manager = users.find((u) => u.id === managerId);
+    const manager = employees.find((e) => e.id === managerId);
     return manager?.name ?? "-";
   };
 
@@ -91,7 +91,7 @@ const Projects = () => {
         (p.startDate || "").includes(q)
       );
     });
-  }, [projects, search, users]);
+  }, [projects, search, employees]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const paginatedData = useMemo(() => {
@@ -164,9 +164,9 @@ const Projects = () => {
   const ManagerOptions = () => (
     <>
       <option value="">Select Manager</option>
-      {users.map((m) => (
+      {employees.map((m) => (
         <option key={m.id} value={m.id}>
-          {m.name}
+          {m.name} ({m.employeeId})
         </option>
       ))}
     </>

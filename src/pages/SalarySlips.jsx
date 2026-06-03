@@ -1,0 +1,276 @@
+import { useMemo, useRef, useState } from "react";
+import { Download } from "lucide-react";
+import html2canvas from "html2canvas";
+import AdminLayout from "../components/AdminLayout";
+import { useApp } from "../context/AppContext";
+import {
+  calculateSalary,
+  MONTH_NAMES,
+  summarizeAttendance,
+} from "../utils/hrUtils";
+
+function SalarySlipDocument({ employee, breakdown, periodLabel }) {
+  return (
+    <div
+      className="bg-white text-slate-900 rounded-xl border border-slate-200 p-6 max-w-lg mx-auto"
+      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+    >
+      <div className="border-b border-slate-200 pb-4 mb-4">
+        <p className="text-xs uppercase tracking-widest text-slate-500">Salary Slip</p>
+        <h2 className="text-xl font-bold">Sruthika Constructions</h2>
+        <p className="text-sm text-slate-600">{periodLabel}</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 text-sm mb-6">
+        <div>
+          <p className="text-slate-500 text-xs">Employee Name</p>
+          <p className="font-semibold">{employee.name}</p>
+        </div>
+        <div>
+          <p className="text-slate-500 text-xs">Employee ID</p>
+          <p className="font-semibold">{employee.employeeId}</p>
+        </div>
+        <div>
+          <p className="text-slate-500 text-xs">Mobile</p>
+          <p>{employee.mobile}</p>
+        </div>
+        <div>
+          <p className="text-slate-500 text-xs">Monthly Salary</p>
+          <p>₹{breakdown.monthlySalary.toLocaleString("en-IN")}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="rounded-lg bg-green-50 border border-green-100 p-3 text-center">
+          <p className="text-xs text-green-700 uppercase">Present Days</p>
+          <p className="text-2xl font-bold text-green-800">{breakdown.present}</p>
+        </div>
+        <div className="rounded-lg bg-red-50 border border-red-100 p-3 text-center">
+          <p className="text-xs text-red-700 uppercase">Absent Days</p>
+          <p className="text-2xl font-bold text-red-800">{breakdown.absent}</p>
+        </div>
+      </div>
+
+      <table className="w-full text-sm border-collapse mb-4">
+        <tbody>
+          <tr className="border-b border-slate-100">
+            <td className="py-2 text-slate-600">Days in month</td>
+            <td className="py-2 text-right font-medium">{breakdown.daysInMonth}</td>
+          </tr>
+          <tr className="border-b border-slate-100">
+            <td className="py-2 text-slate-600">Daily rate</td>
+            <td className="py-2 text-right">
+              ₹{breakdown.dailyRate.toLocaleString("en-IN")}
+            </td>
+          </tr>
+          <tr className="border-b border-slate-100">
+            <td className="py-2 text-slate-600">Deduction (absent)</td>
+            <td className="py-2 text-right text-red-600">
+              − ₹{breakdown.deduction.toLocaleString("en-IN")}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div className="bg-blue-50 rounded-xl p-4 flex justify-between items-center">
+        <span className="font-semibold text-blue-900">Net Payable</span>
+        <span className="text-2xl font-bold text-blue-700">
+          ₹{breakdown.netSalary.toLocaleString("en-IN")}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+const YEAR_OPTIONS = Array.from({ length: 5 }, (_, i) => {
+  const y = new Date().getFullYear() - 2 + i;
+  return y;
+});
+
+export default function SalarySlips() {
+  const { employees, attendance } = useApp();
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
+  const slipRef = useRef(null);
+
+  const periodLabel = `${MONTH_NAMES[month - 1]} ${year}`;
+
+  const selectedEmployee = useMemo(
+    () => employees.find((e) => e.id === selectedEmployeeId),
+    [employees, selectedEmployeeId]
+  );
+
+  const breakdown = useMemo(() => {
+    if (!selectedEmployee) return null;
+    return calculateSalary(selectedEmployee, attendance, year, month);
+  }, [selectedEmployee, attendance, year, month]);
+
+  const attendanceDetail = useMemo(() => {
+    if (!selectedEmployee) return null;
+    return summarizeAttendance(
+      attendance,
+      selectedEmployee.employeeId,
+      year,
+      month
+    );
+  }, [selectedEmployee, attendance, year, month]);
+
+  const downloadSlip = async () => {
+    if (!slipRef.current || !selectedEmployee) return;
+    try {
+      const canvas = await html2canvas(slipRef.current, {
+        scale: 2,
+        backgroundColor: "#ffffff",
+      });
+      const link = document.createElement("a");
+      link.download = `Salary-${selectedEmployee.employeeId}-${year}-${month}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch {
+      alert("Could not download slip. Try again.");
+    }
+  };
+
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        <p className="text-sm text-muted-foreground">
+          Click an employee name, then choose month and year to view present and
+          absent details and generate a salary slip.
+        </p>
+
+        <div className="flex flex-wrap gap-4">
+          <div>
+            <label className="text-sm font-medium block mb-2">Month</label>
+            <select
+              value={month}
+              onChange={(e) => setMonth(Number(e.target.value))}
+              className="h-11 min-w-[160px] rounded-xl border border-border bg-background px-4"
+            >
+              {MONTH_NAMES.map((name, idx) => (
+                <option key={name} value={idx + 1}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-sm font-medium block mb-2">Year</label>
+            <select
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              className="h-11 min-w-[120px] rounded-xl border border-border bg-background px-4"
+            >
+              {YEAR_OPTIONS.map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <div className="px-4 py-3 border-b border-border bg-secondary/40">
+            <h3 className="font-semibold text-sm">Employees — click to view payslip</h3>
+          </div>
+          <ul className="divide-y divide-border">
+            {employees.map((emp) => {
+              const active = selectedEmployeeId === emp.id;
+              const summary = summarizeAttendance(
+                attendance,
+                emp.employeeId,
+                year,
+                month
+              );
+              return (
+                <li key={emp.id}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedEmployeeId(emp.id)}
+                    className={`w-full text-left px-4 py-3 flex flex-wrap items-center justify-between gap-2 transition hover:bg-secondary/50 ${
+                      active ? "bg-primary/10 border-l-4 border-l-primary" : ""
+                    }`}
+                  >
+                    <div>
+                      <p className="font-semibold text-foreground">{emp.name}</p>
+                      <p className="text-xs text-muted-foreground">{emp.employeeId}</p>
+                    </div>
+                    <div className="flex gap-4 text-xs">
+                      <span className="text-green-700 font-medium">
+                        Present: {summary.present}
+                      </span>
+                      <span className="text-red-700 font-medium">
+                        Absent: {summary.absent}
+                      </span>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+            {employees.length === 0 && (
+              <li className="py-10 text-center text-muted-foreground text-sm">
+                No employees added yet.
+              </li>
+            )}
+          </ul>
+        </div>
+
+        {selectedEmployee && breakdown && attendanceDetail && (
+          <div className="space-y-4 border-t border-border pt-6">
+            <h3 className="text-lg font-bold">
+              {selectedEmployee.name} — {periodLabel}
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
+              <div className="rounded-xl border border-green-200 bg-green-50 dark:bg-green-950/20 p-5">
+                <p className="text-sm font-semibold text-green-800 mb-1">Present</p>
+                <p className="text-3xl font-bold text-green-700">
+                  {attendanceDetail.present} days
+                </p>
+                {attendanceDetail.presentDates.length > 0 ? (
+                  <p className="text-xs text-green-800/80 mt-3 leading-relaxed">
+                    {attendanceDetail.presentDates.join(", ")}
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    No present marks for this month.
+                  </p>
+                )}
+              </div>
+              <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/20 p-5">
+                <p className="text-sm font-semibold text-red-800 mb-1">Absent</p>
+                <p className="text-3xl font-bold text-red-700">
+                  {attendanceDetail.absent} days
+                </p>
+                <p className="text-xs text-muted-foreground mt-3">
+                  Unmarked or unchecked days in {periodLabel} count as absent (
+                  {attendanceDetail.daysInMonth} days in month).
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={downloadSlip}
+              className="h-11 px-5 rounded-xl bg-primary text-white text-sm font-semibold flex items-center gap-2 hover:opacity-90"
+            >
+              <Download className="w-4 h-4" />
+              Download Salary Slip
+            </button>
+
+            <div ref={slipRef}>
+              <SalarySlipDocument
+                employee={selectedEmployee}
+                breakdown={breakdown}
+                periodLabel={periodLabel}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </AdminLayout>
+  );
+}

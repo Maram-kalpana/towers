@@ -1,7 +1,7 @@
 /** Initial demo data — persisted to localStorage after first load */
 
 export const seedProjectId = "p-seed-1";
-export const seedManagerUserId = "u-seed-1";
+export const seedEmployeeId = "emp-seed-1";
 
 export function getDefaultProjects() {
   return [
@@ -10,20 +10,26 @@ export function getDefaultProjects() {
       name: "Project Alpha",
       location: "Hyderabad",
       startDate: "2026-01-15",
-      managerId: seedManagerUserId,
+      managerId: seedEmployeeId,
     },
   ];
 }
 
-export function getDefaultUsers() {
+export function getDefaultEmployees() {
   return [
     {
-      id: seedManagerUserId,
-      name: "Site Manager",
-      phone: "9000000000",
-      salary: "45000",
+      id: "emp-seed-1",
+      name: "Ravi Kumar",
+      employeeId: "EMP001",
+      mobile: "9876543210",
+      aadhar: "123456789012",
+      monthlySalary: "25000",
     },
   ];
+}
+
+export function getDefaultAttendance() {
+  return [];
 }
 
 export function getDefaultWorkDetails() {

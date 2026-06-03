@@ -4,10 +4,13 @@ import ProtectedRoute from "./ProtectedRoute";
 import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
 import Projects from "../pages/Projects";
-import Users from "../pages/Users";
+import Employees from "../pages/Employees";
+import Attendance from "../pages/Attendance";
+import SalarySlips from "../pages/SalarySlips";
 import WorkDetails from "../pages/WorkDetails";
 import Profile from "../pages/Profile";
 import Register from "../pages/Register";
+import EmployeePortal from "../pages/EmployeePortal";
 
 export const router = createHashRouter([
   {
@@ -23,6 +26,10 @@ export const router = createHashRouter([
     element: <Login />,
   },
   {
+    path: "/employee",
+    element: <EmployeePortal />,
+  },
+  {
     path: "/dashboard",
     element: (
       <ProtectedRoute>
@@ -32,7 +39,9 @@ export const router = createHashRouter([
     children: [
       { index: true, element: <Dashboard /> },
       { path: "projects", element: <Projects /> },
-      { path: "users", element: <Users /> },
+      { path: "employees", element: <Employees /> },
+      { path: "attendance", element: <Attendance /> },
+      { path: "salary-slips", element: <SalarySlips /> },
       { path: "work-details", element: <WorkDetails /> },
       { path: "profile", element: <Profile /> },
     ],
