@@ -14,8 +14,9 @@ import {
   UserPlus,
   CalendarCheck,
   Receipt,
+  Wallet,
 } from "lucide-react";
-import logo from "../assets/logo.png";
+import AppLogo from "./AppLogo";
 
 function SidebarGroup({ group, collapsed, isOpen, onToggle, onItemClick }) {
   const location = useLocation();
@@ -108,6 +109,7 @@ export default function Sidebar({ isOpen, onClose }) {
         { label: "Employees", icon: UserPlus, path: "/dashboard/employees" },
         { label: "Attendance", icon: CalendarCheck, path: "/dashboard/attendance" },
         { label: "Salary Slips", icon: Receipt, path: "/dashboard/salary-slips" },
+        { label: "Expenses", icon: Wallet, path: "/dashboard/expenses" },
       ],
     },
     {
@@ -171,11 +173,15 @@ export default function Sidebar({ isOpen, onClose }) {
       >
         <div className="h-14 flex items-center px-3 border-b border-[#343c46]">
           <div
-            className={`bg-white rounded-md p-1 flex items-center justify-center transition-all duration-300 ${
-              collapsed ? "w-8 h-8 mx-auto" : "h-9 w-auto px-2"
+            className={`flex items-center transition-all duration-300 ${
+              collapsed ? "mx-auto" : "w-full"
             }`}
           >
-            <img src={logo} alt="logo" className="h-full w-auto object-contain" />
+            <AppLogo
+              size={collapsed ? "sm" : "sidebar"}
+              variant="dark"
+              className={collapsed ? "mx-auto" : ""}
+            />
           </div>
         </div>
 

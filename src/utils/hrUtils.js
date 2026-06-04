@@ -61,7 +61,17 @@ export function summarizeAttendance(records, employeeId, year, month) {
   return { present, absent, daysInMonth, presentDates, absentDates, dates };
 }
 
-export function calculateSalary(employee, records, year, month) {
+export function getMonthAdvances(expenses, employeeId, year, month) {
+  const monthStr = formatMonthKey(year, month);
+  return (expenses || [])
+    .filter(
+      (e) =>
+        e.employeeId === employeeId && (e.date || "").startsWith(monthStr)
+    )
+    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+}
+
+export function calculateSalary(employee, records, year, month, expenses = []) {
   const monthlySalary = Number(employee.monthlySalary) || 0;
   const { present, absent, daysInMonth, presentDates } = summarizeAttendance(
     records,
@@ -71,8 +81,15 @@ export function calculateSalary(employee, records, year, month) {
   );
 
   const dailyRate = daysInMonth > 0 ? monthlySalary / daysInMonth : 0;
-  const netSalary = Math.max(0, Math.round(present * dailyRate * 100) / 100);
+  const grossSalary = Math.round(present * dailyRate * 100) / 100;
   const deduction = Math.round(absent * dailyRate * 100) / 100;
+  const advanceDeduction = Math.round(
+    getMonthAdvances(expenses, employee.id, year, month) * 100
+  ) / 100;
+  const netSalary = Math.max(
+    0,
+    Math.round((grossSalary - advanceDeduction) * 100) / 100
+  );
 
   return {
     monthlySalary,
@@ -82,6 +99,8 @@ export function calculateSalary(employee, records, year, month) {
     presentDates,
     dailyRate: Math.round(dailyRate * 100) / 100,
     deduction,
+    grossSalary,
+    advanceDeduction,
     netSalary,
   };
 }

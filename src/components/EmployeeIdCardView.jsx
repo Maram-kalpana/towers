@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import html2canvas from "html2canvas";
 import { Download } from "lucide-react";
-import logo from "../assets/logo.png";
+import AppLogo from "./AppLogo";
 import { maskAadhar } from "../utils/hrUtils";
 
 export default function EmployeeIdCardView({ employee, showDownload = true, compact = false }) {
@@ -35,9 +35,7 @@ export default function EmployeeIdCardView({ employee, showDownload = true, comp
       >
         <div className="bg-gradient-to-r from-blue-700 to-blue-900 px-5 py-4 text-white">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg bg-white p-1 flex items-center justify-center shrink-0">
-              <img src={logo} alt="" className="w-full h-full object-contain" />
-            </div>
+            <AppLogo size="card" variant="dark" />
             <div>
               <p className="text-[10px] uppercase tracking-widest opacity-80">
                 Employee Identity Card
@@ -48,10 +46,18 @@ export default function EmployeeIdCardView({ employee, showDownload = true, comp
         </div>
 
         <div className="p-5 flex gap-4">
-          <div className="w-20 h-24 rounded-xl bg-slate-100 border-2 border-slate-200 flex items-center justify-center shrink-0">
-            <span className="text-3xl font-bold text-blue-600">
-              {employee.name?.charAt(0)?.toUpperCase() || "?"}
-            </span>
+          <div className="w-24 h-28 rounded-xl bg-slate-100 border-2 border-slate-200 flex items-center justify-center shrink-0 overflow-hidden">
+            {employee.passPhoto ? (
+              <img
+                src={employee.passPhoto}
+                alt={employee.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-3xl font-bold text-blue-600">
+                {employee.name?.charAt(0)?.toUpperCase() || "?"}
+              </span>
+            )}
           </div>
           <div className="flex-1 min-w-0 space-y-2 text-sm">
             <div>
@@ -69,15 +75,9 @@ export default function EmployeeIdCardView({ employee, showDownload = true, comp
           </div>
         </div>
 
-        <div className="px-5 pb-4 grid grid-cols-2 gap-3 text-xs border-t border-slate-100 pt-3 mx-5 mb-4">
-          <div>
-            <p className="text-slate-500 uppercase text-[10px]">Aadhar</p>
-            <p className="font-medium">{maskAadhar(employee.aadhar)}</p>
-          </div>
-          <div>
-            <p className="text-slate-500 uppercase text-[10px]">Monthly Salary</p>
-            <p className="font-medium">₹{Number(employee.monthlySalary).toLocaleString("en-IN")}</p>
-          </div>
+        <div className="px-5 pb-4 text-xs border-t border-slate-100 pt-3 mx-5 mb-4">
+          <p className="text-slate-500 uppercase text-[10px]">Aadhar</p>
+          <p className="font-medium">{maskAadhar(employee.aadhar)}</p>
         </div>
 
         <div className="bg-slate-50 px-5 py-2 text-center">

@@ -8,6 +8,7 @@ import Employees from "../pages/Employees";
 import Attendance from "../pages/Attendance";
 import SalarySlips from "../pages/SalarySlips";
 import WorkDetails from "../pages/WorkDetails";
+import Expenses from "../pages/Expenses";
 import Profile from "../pages/Profile";
 import Register from "../pages/Register";
 import EmployeePortal from "../pages/EmployeePortal";
@@ -42,6 +43,7 @@ export const router = createHashRouter([
       { path: "employees", element: <Employees /> },
       { path: "attendance", element: <Attendance /> },
       { path: "salary-slips", element: <SalarySlips /> },
+      { path: "expenses", element: <Expenses /> },
       { path: "work-details", element: <WorkDetails /> },
       { path: "profile", element: <Profile /> },
     ],

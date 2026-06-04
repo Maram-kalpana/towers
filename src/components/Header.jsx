@@ -9,6 +9,7 @@ const PAGE_ROUTES = [
   { name: "Employees", path: "/dashboard/employees" },
   { name: "Attendance", path: "/dashboard/attendance" },
   { name: "Salary Slips", path: "/dashboard/salary-slips" },
+  { name: "Expenses", path: "/dashboard/expenses" },
   { name: "Work Details", path: "/dashboard/work-details" },
   { name: "Profile", path: "/dashboard/profile" },
 ];

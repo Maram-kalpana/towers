@@ -70,7 +70,7 @@ export default function WorkDetails() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  const emptyForm = { date: "", name: "", status: "Pending" };
+  const emptyForm = { date: "", name: "", reason: "", status: "Pending" };
   const [form, setForm] = useState(emptyForm);
 
   useEffect(() => {
@@ -83,7 +83,8 @@ export default function WorkDetails() {
       (row) =>
         (row.name || "").toLowerCase().includes(q) ||
         (row.date || "").includes(q) ||
-        (row.status || "").toLowerCase().includes(q)
+        (row.status || "").toLowerCase().includes(q) ||
+        (row.reason || "").toLowerCase().includes(q)
     );
   }, [workDetails, search]);
 
@@ -106,6 +107,7 @@ export default function WorkDetails() {
     setForm({
       date: row.date || "",
       name: row.name || "",
+      reason: row.reason || "",
       status: row.status || "Pending",
     });
     setOpenPanel(true);
@@ -114,17 +116,23 @@ export default function WorkDetails() {
   const handleSave = () => {
     if (!form.date) return alert("Please select a date");
     if (!form.name.trim()) return alert("Please enter a name");
+    if (!form.reason.trim()) return alert("Please enter a reason");
+
+    const payload = {
+      date: form.date,
+      name: form.name.trim(),
+      reason: form.reason.trim(),
+      status: form.status,
+    };
 
     if (editingId) {
       setWorkDetails((prev) =>
-        prev.map((row) =>
-          row.id === editingId ? { ...row, ...form, name: form.name.trim() } : row
-        )
+        prev.map((row) => (row.id === editingId ? { ...row, ...payload } : row))
       );
     } else {
       setWorkDetails((prev) => [
         ...prev,
-        { id: `wd-${Date.now()}`, ...form, name: form.name.trim() },
+        { id: `wd-${Date.now()}`, ...payload },
       ]);
     }
 
@@ -170,11 +178,11 @@ export default function WorkDetails() {
             <table className="w-full text-sm border-collapse min-w-[500px]">
               <thead>
                 <tr className="bg-secondary/50">
-                  {["Date", "Name", "Status", "Actions"].map((h, i) => (
+                  {["Date", "Name", "Reason", "Status", "Actions"].map((h, i) => (
                     <th
                       key={h}
                       className={`py-4 px-5 font-semibold text-foreground border-b border-r border-border last:border-r-0 ${
-                        i === 3 ? "text-right" : "text-left"
+                        i === 4 ? "text-right" : "text-left"
                       }`}
                     >
                       {h}
@@ -190,6 +198,9 @@ export default function WorkDetails() {
                     </td>
                     <td className="py-4 px-5 border-b border-r border-border">
                       {row.name}
+                    </td>
+                    <td className="py-4 px-5 border-b border-r border-border max-w-[240px]">
+                      <span className="line-clamp-2">{row.reason || "—"}</span>
                     </td>
                     <td className="py-4 px-5 border-b border-r border-border">
                       <span
@@ -215,7 +226,7 @@ export default function WorkDetails() {
                 {paginatedData.length === 0 && (
                   <tr>
                     <td
-                      colSpan={4}
+                      colSpan={5}
                       className="py-10 text-center text-muted-foreground"
                     >
                       No work details found.
@@ -274,6 +285,12 @@ export default function WorkDetails() {
               value={form.name}
               onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
               placeholder="Work description or title"
+            />
+            <LabeledInput
+              label="Reason"
+              value={form.reason}
+              onChange={(e) => setForm((p) => ({ ...p, reason: e.target.value }))}
+              placeholder="Why this work was done"
             />
             <LabeledSelect
               label="Status"

@@ -65,6 +65,7 @@ const Projects = () => {
 
   const emptyForm = {
     name: "",
+    companyName: "",
     managerId: "",
     location: "",
     startDate: "",
@@ -86,6 +87,7 @@ const Projects = () => {
       const managerName = getManagerName(p.managerId).toLowerCase();
       return (
         (p.name || "").toLowerCase().includes(q) ||
+        (p.companyName || "").toLowerCase().includes(q) ||
         (p.location || "").toLowerCase().includes(q) ||
         managerName.includes(q) ||
         (p.startDate || "").includes(q)
@@ -103,6 +105,7 @@ const Projects = () => {
 
   const handleAddProject = () => {
     if (!form.name.trim()) return alert("Please enter project name");
+    if (!form.companyName.trim()) return alert("Please enter project company name");
     if (!form.managerId) return alert("Please select a manager");
     if (!form.location.trim()) return alert("Please enter location");
     if (!form.startDate) return alert("Please select start date");
@@ -112,6 +115,7 @@ const Projects = () => {
       {
         id: `p-${Date.now()}`,
         name: form.name.trim(),
+        companyName: form.companyName.trim(),
         managerId: form.managerId,
         location: form.location.trim(),
         startDate: form.startDate,
@@ -125,6 +129,7 @@ const Projects = () => {
     setEditingId(project.id);
     setForm({
       name: project.name ?? "",
+      companyName: project.companyName ?? "",
       managerId: project.managerId ?? "",
       location: project.location ?? "",
       startDate: project.startDate ?? "",
@@ -134,6 +139,7 @@ const Projects = () => {
 
   const handleUpdateProject = () => {
     if (!form.name.trim()) return alert("Please enter project name");
+    if (!form.companyName.trim()) return alert("Please enter project company name");
     if (!form.managerId) return alert("Please select a manager");
     if (!form.location.trim()) return alert("Please enter location");
     if (!form.startDate) return alert("Please select start date");
@@ -144,6 +150,7 @@ const Projects = () => {
           ? {
               ...p,
               name: form.name.trim(),
+              companyName: form.companyName.trim(),
               managerId: form.managerId,
               location: form.location.trim(),
               startDate: form.startDate,
@@ -179,6 +186,12 @@ const Projects = () => {
         value={form.name}
         onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
         placeholder="Enter project name"
+      />
+      <LabeledInput
+        label="Project Company Name"
+        value={form.companyName}
+        onChange={(e) => setForm((p) => ({ ...p, companyName: e.target.value }))}
+        placeholder="Client or company name"
       />
       <LabeledSelect
         label="Assign Manager"
@@ -245,12 +258,12 @@ const Projects = () => {
             <table className="w-full text-sm border-collapse min-w-[600px]">
               <thead>
                 <tr className="bg-secondary/50">
-                  {["Project Name", "Manager", "Start Date", "Location", "Actions"].map(
+                  {["Project Name", "Company", "Manager", "Start Date", "Location", "Actions"].map(
                     (h, i) => (
                       <th
                         key={h}
                         className={`py-4 px-5 font-semibold text-foreground border-b border-r border-border last:border-r-0 ${
-                          i === 4 ? "text-right" : "text-left"
+                          i === 5 ? "text-right" : "text-left"
                         }`}
                       >
                         {h}
@@ -264,6 +277,9 @@ const Projects = () => {
                   <tr key={project.id} className="hover:bg-secondary/30 transition">
                     <td className="py-4 px-5 border-b border-r border-border">
                       {project.name}
+                    </td>
+                    <td className="py-4 px-5 border-b border-r border-border">
+                      {project.companyName ?? "—"}
                     </td>
                     <td className="py-4 px-5 border-b border-r border-border">
                       {getManagerName(project.managerId)}
@@ -292,7 +308,7 @@ const Projects = () => {
                 {paginatedData.length === 0 && (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={6}
                       className="py-10 text-center text-muted-foreground"
                     >
                       No projects found.

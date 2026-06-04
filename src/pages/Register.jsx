@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png";
+import AppLogo from "../components/AppLogo";
 
 export default function Register() {
   const { register } = useAuth();
@@ -46,9 +46,7 @@ export default function Register() {
 
           {/* LOGO + TEXT */}
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center shadow-lg p-2">
-              <img src={logo} alt="logo" className="w-full h-full object-contain" />
-            </div>
+            <AppLogo size="lg" variant="dark" />
 
             <div>
               <h1 className="text-2xl xl:text-3xl font-bold text-white leading-tight">
@@ -71,9 +69,7 @@ export default function Register() {
 
             {/* MOBILE LOGO */}
             <div className="lg:hidden mb-8 flex items-center justify-center gap-3">
-              <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-lg p-2">
-                <img src={logo} alt="logo" className="w-full h-full object-contain" />
-              </div>
+              <AppLogo size="md" variant="light" />
 
               <div>
                 <h1 className="text-lg font-bold text-slate-900">

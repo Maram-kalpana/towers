@@ -8,6 +8,7 @@ export function getDefaultProjects() {
     {
       id: seedProjectId,
       name: "Project Alpha",
+      companyName: "Sruthika Constructions Pvt Ltd",
       location: "Hyderabad",
       startDate: "2026-01-15",
       managerId: seedEmployeeId,
@@ -40,6 +41,7 @@ export function getDefaultWorkDetails() {
       id: "wd-seed-1",
       date: "2026-01-20",
       name: "Foundation work",
+      reason: "Scheduled foundation pour for block A",
       status: "In Progress",
     },
   ];

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Search, Smartphone } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import EmployeeIdCardView from "../components/EmployeeIdCardView";
-import logo from "../assets/logo.png";
+import AppLogo from "../components/AppLogo";
 
 export default function EmployeePortal() {
   const { employees } = useApp();
@@ -31,9 +31,7 @@ export default function EmployeePortal() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50 flex flex-col">
       <header className="bg-white border-b border-slate-200 px-4 py-4 shadow-sm">
         <div className="max-w-md mx-auto flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 p-1 flex items-center justify-center">
-            <img src={logo} alt="" className="w-full h-full object-contain" />
-          </div>
+          <AppLogo size="md" variant="light" />
           <div>
             <p className="text-xs text-slate-500 uppercase tracking-wide">Employee Portal</p>
             <p className="font-bold text-slate-900 text-sm">Sruthika Constructions</p>

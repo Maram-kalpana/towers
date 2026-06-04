@@ -64,11 +64,25 @@ function SalarySlipDocument({ employee, breakdown, periodLabel }) {
             </td>
           </tr>
           <tr className="border-b border-slate-100">
+            <td className="py-2 text-slate-600">Gross (present days)</td>
+            <td className="py-2 text-right">
+              ₹{breakdown.grossSalary.toLocaleString("en-IN")}
+            </td>
+          </tr>
+          <tr className="border-b border-slate-100">
             <td className="py-2 text-slate-600">Deduction (absent)</td>
             <td className="py-2 text-right text-red-600">
               − ₹{breakdown.deduction.toLocaleString("en-IN")}
             </td>
           </tr>
+          {breakdown.advanceDeduction > 0 && (
+            <tr className="border-b border-slate-100">
+              <td className="py-2 text-slate-600">Advance deduction</td>
+              <td className="py-2 text-right text-red-600">
+                − ₹{breakdown.advanceDeduction.toLocaleString("en-IN")}
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
 
@@ -88,7 +102,7 @@ const YEAR_OPTIONS = Array.from({ length: 5 }, (_, i) => {
 });
 
 export default function SalarySlips() {
-  const { employees, attendance } = useApp();
+  const { employees, attendance, expenses } = useApp();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -105,8 +119,8 @@ export default function SalarySlips() {
 
   const breakdown = useMemo(() => {
     if (!selectedEmployee) return null;
-    return calculateSalary(selectedEmployee, attendance, year, month);
-  }, [selectedEmployee, attendance, year, month]);
+    return calculateSalary(selectedEmployee, attendance, year, month, expenses);
+  }, [selectedEmployee, attendance, year, month, expenses]);
 
   const attendanceDetail = useMemo(() => {
     if (!selectedEmployee) return null;

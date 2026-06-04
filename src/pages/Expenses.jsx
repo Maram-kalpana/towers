@@ -1,459 +1,347 @@
-// src/pages/Expenses.jsx
-import { useMemo, useState, useEffect} from "react";
-import { motion } from "framer-motion";
-import {
-  ChevronDown,
-  MoreHorizontal,
-  DollarSign,
-  Wallet,
-  Landmark,
-} from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Search, Plus, Pencil, Trash2, X, ChevronDown } from "lucide-react";
 import AdminLayout from "../components/AdminLayout";
+import { useApp } from "../context/AppContext";
 
-const categoryDataMap = {
-  labour: [
-    {
-      id: 1,
-      date: "2025-04-10",
-      name: "Ramesh",
-      age: "32",
-      gender: "Male",
-      partyName: "Sharma Labour Group",
-      amount: 1200,
-    },
-    {
-      id: 2,
-      date: "2025-04-11",
-      name: "Sita",
-      age: "28",
-      gender: "Female",
-      partyName: "Sharma Labour Group",
-      amount: 950,
-    },
-    {
-      id: 3,
-      date: "2025-04-12",
-      name: "Mahesh",
-      age: "35",
-      gender: "Male",
-      partyName: "Verma Labour Team",
-      amount: 1400,
-    },
-  ],
-  vendor: [
-    {
-      id: 1,
-      date: "2025-04-10",
-      vendorName: "ABC Labour Contractors",
-      vendorType: "Labour Vendor",
-      contact: "9000000001",
-      amount: 5000,
-    },
-    {
-      id: 2,
-      date: "2025-04-11",
-      vendorName: "XYZ Equipment",
-      vendorType: "Machinery Vendor",
-      contact: "9000000002",
-      amount: 7000,
-    },
-    {
-      id: 3,
-      date: "2025-04-12",
-      vendorName: "BuildMart Supplies",
-      vendorType: "Material Vendor",
-      contact: "9000000003",
-      amount: 4500,
-    },
-  ],
-  machinery: [
-    {
-      id: 1,
-      date: "2025-04-09",
-      machineName: "Excavator",
-      operator: "Ravi Kumar",
-      hours: "8",
-      amount: 8000,
-    },
-    {
-      id: 2,
-      date: "2025-04-10",
-      machineName: "Concrete Mixer",
-      operator: "Sanjay",
-      hours: "6",
-      amount: 3500,
-    },
-    {
-      id: 3,
-      date: "2025-04-11",
-      machineName: "Crane",
-      operator: "Amit",
-      hours: "5",
-      amount: 6000,
-    },
-  ],
-  material: [
-    {
-      id: 1,
-      date: "2025-04-08",
-      materialName: "Cement",
-      quantity: "120 bags",
-      supplier: "BuildMart Supplies",
-      amount: 18000,
-    },
-    {
-      id: 2,
-      date: "2025-04-09",
-      materialName: "Sand",
-      quantity: "3 loads",
-      supplier: "Maa Traders",
-      amount: 9000,
-    },
-    {
-      id: 3,
-      date: "2025-04-10",
-      materialName: "Steel",
-      quantity: "2 tons",
-      supplier: "Ultra Steel",
-      amount: 25000,
-    },
-  ],
-  stock: [
-    {
-      id: 1,
-      date: "2025-04-07",
-      itemName: "Steel Rods",
-      inQty: "120",
-      outQty: "40",
-      balance: "80",
-      amount: 11000,
-    },
-    {
-      id: 2,
-      date: "2025-04-08",
-      itemName: "Cement Bags",
-      inQty: "200",
-      outQty: "75",
-      balance: "125",
-      amount: 14000,
-    },
-    {
-      id: 3,
-      date: "2025-04-09",
-      itemName: "Bricks",
-      inQty: "1000",
-      outQty: "300",
-      balance: "700",
-      amount: 9000,
-    },
-  ],
-};
+const ADVANCE_TYPES = [
+  { value: "petrol", label: "Petrol" },
+  { value: "ta-da", label: "TA / DA" },
+  { value: "others", label: "Others" },
+];
 
-const categoryColumnsMap = {
-  labour: [
-    { key: "date", label: "Date" },
-    { key: "name", label: "Name" },
-    { key: "age", label: "Age" },
-    { key: "gender", label: "Gender" },
-    { key: "partyName", label: "Party Name" },
-    { key: "amount", label: "Amount" },
-  ],
-  vendor: [
-    { key: "date", label: "Date" },
-    { key: "vendorName", label: "Vendor Name" },
-    { key: "vendorType", label: "Vendor Type" },
-    { key: "contact", label: "Contact" },
-    { key: "amount", label: "Amount" },
-  ],
-  machinery: [
-    { key: "date", label: "Date" },
-    { key: "machineName", label: "Machine Name" },
-    { key: "operator", label: "Operator" },
-    { key: "hours", label: "Hours" },
-    { key: "amount", label: "Amount" },
-  ],
-  material: [
-    { key: "date", label: "Date" },
-    { key: "materialName", label: "Material Name" },
-    { key: "quantity", label: "Quantity" },
-    { key: "supplier", label: "Supplier" },
-    { key: "amount", label: "Amount" },
-  ],
-  stock: [
-    { key: "date", label: "Date" },
-    { key: "itemName", label: "Item Name" },
-    { key: "inQty", label: "In" },
-    { key: "outQty", label: "Out" },
-    { key: "balance", label: "Balance" },
-    { key: "amount", label: "Amount" },
-  ],
-};
-
-// 👇 NAYA SUMMARY CARD COMPONENT (Dashboard ke design jaisa)
-function SummaryCard({ title, value, icon, delay = 0, bgClass, iconClass }) {
+function SlidePanel({ open, onClose, children }) {
+  if (!open) return null;
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay }}
-      whileHover={{ y: -4, scale: 1.01 }}
-      className={`rounded-xl p-5 shadow-sm border border-transparent dark:border-white/5 h-full ${bgClass}`}
-    >
-      <div className="flex items-center justify-between mb-4">
-        <div className="w-10 h-10 rounded-full bg-white dark:bg-transparent flex items-center justify-center shadow-sm dark:shadow-none">
-          <div className={iconClass}>{icon}</div>
-        </div>
+    <>
+      <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} />
+      <div className="fixed top-0 right-0 z-50 h-full w-full max-w-[420px] bg-card border-l border-border shadow-2xl overflow-y-auto">
+        {children}
       </div>
-      <div className="space-y-1">
-        <h3 className="text-2xl font-heading font-bold text-gray-900 dark:text-white">
-          ₹{value.toLocaleString()}
-        </h3>
-        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-          {title}
-        </p>
-      </div>
-    </motion.div>
+    </>
   );
 }
 
-export default function Expenses() {
-  const location = useLocation();
-  const person = location.state?.person;
+function LabeledInput({ label, type = "text", value, onChange, placeholder }) {
+  return (
+    <div className="relative">
+      {label && (
+        <label className="absolute left-4 -top-2.5 bg-card px-1 text-xs text-muted-foreground z-10">
+          {label}
+        </label>
+      )}
+      <input
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="w-full h-11 rounded-2xl border border-border bg-background px-4 text-foreground outline-none focus:ring-2 focus:ring-primary/30 dark:[color-scheme:dark]"
+      />
+    </div>
+  );
+}
 
-  const [category, setCategory] = useState("labour");
-  const [date, setDate] = useState("");
-
-  const allRows = categoryDataMap[category] || [];
-  const columns = categoryColumnsMap[category] || [];
-
-  const filteredRows = useMemo(() => {
-    return allRows.filter((row) => {
-      const dateMatch = date ? row.date === date : true;
-      return dateMatch;
-    });
-  }, [allRows, date]);
-
-  const allocatedAmount = Number(person?.amountAllocated || 0);
-
-  const spentAmount = useMemo(() => {
-    return filteredRows.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-  }, [filteredRows]);
-
-  const balanceAmount = allocatedAmount - spentAmount;
-
-  if (!person) {
-    return (
-      <AdminLayout
-        title="Expenses"
-        subtitle="View account expense details."
+function LabeledSelect({ label, value, onChange, children }) {
+  return (
+    <div className="relative">
+      {label && (
+        <label className="absolute left-4 -top-2.5 bg-card px-1 text-xs text-muted-foreground z-10">
+          {label}
+        </label>
+      )}
+      <select
+        value={value}
+        onChange={onChange}
+        className="w-full h-11 rounded-2xl border border-border bg-background px-4 pr-10 text-foreground outline-none appearance-none focus:ring-2 focus:ring-primary/30"
       >
-        <div className="p-6 max-w-[1600px] mx-auto">
-          <div className="bg-card rounded-xl border border-border p-6">
-            <p className="text-foreground text-lg font-medium">
-              No person selected.
-            </p>
-            <p className="text-muted-foreground mt-2">
-              Please go back to Accounts and click View on a row.
-            </p>
-          </div>
-        </div>
-      </AdminLayout>
-    );
-  }
+        {children}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+    </div>
+  );
+}
+
+const emptyForm = {
+  employeeId: "",
+  advanceType: "petrol",
+  amount: "",
+  date: "",
+  note: "",
+};
+
+function advanceTypeLabel(value) {
+  return ADVANCE_TYPES.find((t) => t.value === value)?.label ?? value;
+}
+
+export default function Expenses() {
+  const { expenses, setExpenses, employees } = useApp();
+  const [search, setSearch] = useState("");
+  const [openPanel, setOpenPanel] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [form, setForm] = useState(emptyForm);
+  const itemsPerPage = 5;
+
+  useEffect(() => setCurrentPage(1), [search]);
+
+  const getEmployeeName = (employeeId) => {
+    const emp = employees.find((e) => e.id === employeeId);
+    return emp?.name ?? "—";
+  };
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return expenses.filter((row) => {
+      const name = getEmployeeName(row.employeeId).toLowerCase();
+      return (
+        name.includes(q) ||
+        (row.date || "").includes(q) ||
+        advanceTypeLabel(row.advanceType).toLowerCase().includes(q) ||
+        String(row.amount || "").includes(q)
+      );
+    });
+  }, [expenses, search, employees]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
+
+  const resetForm = () => setForm(emptyForm);
+
+  const handleSave = () => {
+    if (!form.employeeId) return alert("Please select an employee");
+    if (!form.amount.toString().trim() || Number(form.amount) <= 0) {
+      return alert("Please enter a valid advance amount");
+    }
+    if (!form.date) return alert("Please select the advance date");
+
+    const emp = employees.find((e) => e.id === form.employeeId);
+    const payload = {
+      employeeId: form.employeeId,
+      employeeName: emp?.name ?? "",
+      advanceType: form.advanceType,
+      amount: Number(form.amount),
+      date: form.date,
+      note: form.note.trim(),
+    };
+
+    if (editingId) {
+      setExpenses((prev) =>
+        prev.map((row) => (row.id === editingId ? { ...row, ...payload } : row))
+      );
+    } else {
+      setExpenses((prev) => [...prev, { id: `exp-${Date.now()}`, ...payload }]);
+    }
+
+    setOpenPanel(false);
+    setEditingId(null);
+    resetForm();
+  };
+
+  const handleEdit = (row) => {
+    setEditingId(row.id);
+    setForm({
+      employeeId: row.employeeId || "",
+      advanceType: row.advanceType || "petrol",
+      amount: row.amount?.toString() ?? "",
+      date: row.date || "",
+      note: row.note || "",
+    });
+    setOpenPanel(true);
+  };
+
+  const handleDelete = (id) => {
+    if (!window.confirm("Delete this advance record?")) return;
+    setExpenses((prev) => prev.filter((row) => row.id !== id));
+  };
 
   return (
-    <AdminLayout
-      title="Expenses"
-      subtitle={`Expense details for ${person.name}`}
-    >
-      <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {/* 👇 CARDS WITH DASHBOARD COLORS */}
-          <SummaryCard
-            title="Allocated Amount"
-            value={allocatedAmount}
-            icon={<Landmark className="w-5 h-5" />}
-            bgClass="bg-[#EFF6FF] dark:bg-[#0B1727]" 
-            iconClass="text-[#3B82F6]"
-            delay={0.1}
-          />
-          <SummaryCard
-            title="Spent Amount"
-            value={spentAmount}
-            icon={<DollarSign className="w-5 h-5" />}
-            bgClass="bg-[#F5F3FF] dark:bg-[#131128]" 
-            iconClass="text-[#A855F7]"
-            delay={0.2}
-          />
-          <SummaryCard
-            title="Balance Amount"
-            value={balanceAmount}
-            icon={<Wallet className="w-5 h-5" />}
-            bgClass="bg-[#F0FDF4] dark:bg-[#0A1A17]" 
-            iconClass="text-[#22C55E]"
-            delay={0.3}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-            className="xl:col-span-4 bg-card rounded-xl border border-border p-6"
-          >
-            <h3 className="font-heading font-semibold text-foreground mb-4">
-              Account Details
-            </h3>
-            <div className="space-y-3">
-              <div>
-                <p className="text-xs text-muted-foreground">Name</p>
-                <p className="text-sm font-medium text-foreground mt-1">
-                  {person.name}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Designation</p>
-                <p className="text-sm font-medium text-foreground mt-1">
-                  {person.designation}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Email</p>
-                <p className="text-sm font-medium text-foreground mt-1 break-all">
-                  {person.mailId}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="xl:col-span-8 bg-card rounded-xl border border-border p-6"
-          >
-            <h3 className="font-heading font-semibold text-foreground mb-4">
-              Filters
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="relative">
-                <label className="block text-xs text-muted-foreground mb-2">
-                  Category
-                </label>
-                <div className="relative">
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full h-11 px-4 pr-10 rounded-lg bg-background border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 appearance-none transition"
-                  >
-                    <option value="labour">labour</option>
-                    <option value="vendor">vendor</option>
-                    <option value="machinery">machinery</option>
-                    <option value="material">material</option>
-                    <option value="stock">stock</option>
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                </div>
-              </div>
-
-              <div className="relative">
-                <label className="block text-xs text-muted-foreground mb-2">
-                  Date
-                </label>
-                <div className="relative">
-                  {/* 👇 EXTRA CALENDAR ICON HATA DIYA HAI */}
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="w-full h-11 px-4 rounded-lg bg-background border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition dark:[color-scheme:dark]"
-                  />
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45 }}
-          className="bg-card rounded-xl border border-border overflow-hidden"
-        >
-          <div className="px-6 py-4 border-b border-border">
-            <h3 className="font-heading font-semibold text-foreground">
-              Expense Records
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Showing {filteredRows.length} record
-              {filteredRows.length !== 1 ? "s" : ""} for {category}
+    <>
+      <AdminLayout>
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              Record employee advances (petrol, TA/DA, or others). Amounts are
+              deducted from salary for the same month on salary slips.
             </p>
+            <button
+              type="button"
+              onClick={() => {
+                resetForm();
+                setEditingId(null);
+                setOpenPanel(true);
+              }}
+              className="h-11 px-5 rounded-2xl bg-primary text-white text-sm font-semibold flex items-center gap-2 hover:opacity-90 transition shadow-md shadow-primary/25"
+            >
+              <Plus className="w-4 h-4" />
+              Add Advance
+            </button>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="relative w-full max-w-[430px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by employee, type, or date..."
+              className="w-full h-11 pl-10 pr-4 rounded-xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+
+          <div className="bg-card rounded-xl border border-border overflow-x-auto">
+            <table className="w-full text-sm border-collapse min-w-[720px]">
               <thead>
-                <tr className="border-b border-border bg-secondary/40">
-                  {columns.map((col) => (
-                    <th
-                      key={col.key}
-                      className="text-left py-3.5 px-4 font-medium text-muted-foreground whitespace-nowrap"
-                    >
-                      {col.label}
-                    </th>
-                  ))}
-                  
+                <tr className="bg-secondary/50">
+                  {["Date", "Employee", "Advance Type", "Amount", "Note", "Actions"].map(
+                    (h, i) => (
+                      <th
+                        key={h}
+                        className={`py-3 px-4 border-b border-r border-border font-semibold ${
+                          i === 5 ? "text-right" : "text-left"
+                        }`}
+                      >
+                        {h}
+                      </th>
+                    )
+                  )}
                 </tr>
               </thead>
-
               <tbody>
-                {filteredRows.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={columns.length }
-                      className="h-[220px] text-center align-middle text-muted-foreground"
-                    >
-                      No expense rows
+                {paginated.map((row) => (
+                  <tr key={row.id} className="hover:bg-secondary/30">
+                    <td className="py-3 px-4 border-b border-r border-border">{row.date}</td>
+                    <td className="py-3 px-4 border-b border-r border-border font-medium">
+                      {row.employeeName || getEmployeeName(row.employeeId)}
+                    </td>
+                    <td className="py-3 px-4 border-b border-r border-border">
+                      {advanceTypeLabel(row.advanceType)}
+                    </td>
+                    <td className="py-3 px-4 border-b border-r border-border">
+                      ₹{Number(row.amount).toLocaleString("en-IN")}
+                    </td>
+                    <td className="py-3 px-4 border-b border-r border-border text-muted-foreground">
+                      {row.note || "—"}
+                    </td>
+                    <td className="py-3 px-4 border-b border-border text-right">
+                      <div className="flex justify-end gap-2">
+                        <button type="button" onClick={() => handleEdit(row)}>
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button type="button" onClick={() => handleDelete(row.id)}>
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
-                ) : (
-                  filteredRows.map((row, i) => (
-                    <motion.tr
-                      key={row.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className="border-b border-border last:border-0 hover:bg-secondary/50 transition"
-                    >
-                      {columns.map((col, index) => (
-                        <td
-                          key={col.key}
-                          className={`py-4 px-4 whitespace-nowrap ${
-                            col.key === "amount"
-                              ? "text-foreground font-semibold"
-                              : index === 1
-                              ? "font-medium text-foreground"
-                              : "text-muted-foreground"
-                          }`}
-                        >
-                          {col.key === "amount"
-                            ? `₹${Number(row[col.key] || 0).toLocaleString()}`
-                            : row[col.key]}
-                        </td>
-                      ))}
-
-                      
-                    </motion.tr>
-                  ))
+                ))}
+                {paginated.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="py-10 text-center text-muted-foreground">
+                      No advance records found.
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
           </div>
-        </motion.div>
-      </div>
-    </AdminLayout>
+
+          <div className="flex justify-between items-center px-4">
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+              className="px-4 py-2 rounded-lg border border-border text-sm disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => p + 1)}
+              className="px-4 py-2 rounded-lg border border-border text-sm disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </AdminLayout>
+
+      <SlidePanel open={openPanel} onClose={() => setOpenPanel(false)}>
+        <div className="p-7 space-y-5">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold">
+              {editingId ? "Edit Advance" : "Add Advance"}
+            </h2>
+            <button type="button" onClick={() => setOpenPanel(false)}>
+              <X className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </div>
+
+          <LabeledSelect
+            label="Employee Name"
+            value={form.employeeId}
+            onChange={(e) => setForm((p) => ({ ...p, employeeId: e.target.value }))}
+          >
+            <option value="">Select employee</option>
+            {employees.map((emp) => (
+              <option key={emp.id} value={emp.id}>
+                {emp.name} ({emp.employeeId})
+              </option>
+            ))}
+          </LabeledSelect>
+
+          <LabeledSelect
+            label="Advance For"
+            value={form.advanceType}
+            onChange={(e) => setForm((p) => ({ ...p, advanceType: e.target.value }))}
+          >
+            {ADVANCE_TYPES.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </LabeledSelect>
+
+          <LabeledInput
+            label="Advance Amount (₹)"
+            type="number"
+            value={form.amount}
+            onChange={(e) => setForm((p) => ({ ...p, amount: e.target.value }))}
+            placeholder="Amount to deduct from salary"
+          />
+
+          <LabeledInput
+            label="Date"
+            type="date"
+            value={form.date}
+            onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
+          />
+
+          <LabeledInput
+            label="Note (optional)"
+            value={form.note}
+            onChange={(e) => setForm((p) => ({ ...p, note: e.target.value }))}
+            placeholder="Additional details"
+          />
+
+          <p className="text-xs text-muted-foreground rounded-xl bg-secondary/40 px-3 py-2">
+            This advance will be deducted from the employee&apos;s net salary for the
+            month of the selected date.
+          </p>
+
+          <button
+            type="button"
+            onClick={handleSave}
+            className="w-full h-12 rounded-2xl bg-primary text-white font-semibold"
+          >
+            Save Advance
+          </button>
+        </div>
+      </SlidePanel>
+    </>
   );
 }

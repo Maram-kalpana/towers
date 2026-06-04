@@ -35,6 +35,8 @@ function LabeledInput({ label, type = "text", value, onChange, placeholder }) {
   );
 }
 
+const MAX_IMAGE_SIZE_MB = 2;
+
 const emptyForm = {
   name: "",
   employeeId: "",
@@ -43,7 +45,58 @@ const emptyForm = {
   monthlySalary: "",
   trainingDurationStart: "",
   trainingDurationEnd: "",
+  passPhoto: "",
+  aadharCardImage: "",
 };
+
+function readImageFile(file, onDone) {
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    alert("Please upload an image file (JPG, PNG, etc.)");
+    return;
+  }
+  if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+    alert(`Image must be under ${MAX_IMAGE_SIZE_MB} MB`);
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => onDone(reader.result);
+  reader.readAsDataURL(file);
+}
+
+function FileUploadField({ label, value, onChange, accept = "image/*" }) {
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-medium text-foreground">{label}</p>
+      {value ? (
+        <div className="relative rounded-xl border border-border overflow-hidden bg-secondary/30">
+          <img src={value} alt={label} className="w-full max-h-36 object-contain" />
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="absolute top-2 right-2 px-2 py-1 text-xs rounded-lg bg-card border border-border hover:bg-secondary"
+          >
+            Remove
+          </button>
+        </div>
+      ) : (
+        <label className="flex flex-col items-center justify-center w-full h-24 rounded-2xl border-2 border-dashed border-border cursor-pointer hover:bg-secondary/30 transition">
+          <span className="text-xs text-muted-foreground">Click to upload image</span>
+          <input
+            type="file"
+            accept={accept}
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              readImageFile(file, onChange);
+              e.target.value = "";
+            }}
+          />
+        </label>
+      )}
+    </div>
+  );
+}
 
 export default function Employees() {
   const { employees, setEmployees } = useApp();
@@ -107,6 +160,8 @@ export default function Employees() {
       monthlySalary: form.monthlySalary.toString().trim(),
       trainingDurationStart: form.trainingDurationStart || "",
       trainingDurationEnd: form.trainingDurationEnd || "",
+      passPhoto: form.passPhoto || "",
+      aadharCardImage: form.aadharCardImage || "",
     };
 
     if (editingId) {
@@ -132,6 +187,8 @@ export default function Employees() {
       monthlySalary: emp.monthlySalary ?? "",
       trainingDurationStart: emp.trainingDurationStart || "",
       trainingDurationEnd: emp.trainingDurationEnd || "",
+      passPhoto: emp.passPhoto || "",
+      aadharCardImage: emp.aadharCardImage || "",
     });
     setOpenPanel(true);
   };
@@ -141,8 +198,26 @@ export default function Employees() {
     setEmployees((prev) => prev.filter((e) => e.id !== id));
   };
 
+  const cardEmployeeDisplay = useMemo(() => {
+    if (!cardEmployee) return null;
+    return employees.find((e) => e.id === cardEmployee.id) ?? cardEmployee;
+  }, [cardEmployee, employees]);
+
+  const formIdCardPreview = useMemo(
+    () => ({
+      id: editingId || "preview",
+      name: form.name.trim() || "Employee Name",
+      employeeId: form.employeeId.trim().toUpperCase() || "EMP000",
+      mobile: form.mobile.trim() || "—",
+      aadhar: form.aadhar.trim() || "",
+      passPhoto: form.passPhoto || "",
+    }),
+    [form, editingId]
+  );
+
   const showCard = (emp) => {
-    setCardEmployee(emp);
+    const latest = employees.find((e) => e.id === emp.id) ?? emp;
+    setCardEmployee(latest);
     setOpenCard(true);
   };
 
@@ -189,12 +264,13 @@ export default function Employees() {
                     "Aadhar",
                     "Salary",
                     "Training Period",
+                    "Documents",
                     "Actions",
                   ].map((h, i) => (
                       <th
                         key={h}
                         className={`py-3 px-4 border-b border-r border-border font-semibold ${
-                          i === 6 ? "text-right" : "text-left"
+                          i === 7 ? "text-right" : "text-left"
                         }`}
                       >
                         {h}
@@ -222,6 +298,13 @@ export default function Employees() {
                         ? `${emp.trainingDurationStart} — ${emp.trainingDurationEnd}`
                         : emp.trainingDurationStart || emp.trainingDurationEnd || "—"}
                     </td>
+                    <td className="py-3 px-4 border-b border-r border-border text-xs">
+                      {emp.passPhoto || emp.aadharCardImage ? (
+                        <span className="text-green-700 font-medium">Uploaded</span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
                     <td className="py-3 px-4 border-b border-border text-right">
                       <div className="flex justify-end gap-2">
                         <button
@@ -244,7 +327,7 @@ export default function Employees() {
                 ))}
                 {paginated.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="py-10 text-center text-muted-foreground">
+                    <td colSpan={8} className="py-10 text-center text-muted-foreground">
                       No employees found.
                     </td>
                   </tr>
@@ -321,6 +404,28 @@ export default function Employees() {
             onChange={(e) => setForm((p) => ({ ...p, monthlySalary: e.target.value }))}
             placeholder="Amount in ₹"
           />
+          <FileUploadField
+            label="Passport Size Photo"
+            value={form.passPhoto}
+            onChange={(dataUrl) => setForm((p) => ({ ...p, passPhoto: dataUrl }))}
+          />
+          {form.passPhoto && (
+            <div className="rounded-xl border border-border bg-secondary/20 p-4">
+              <p className="text-sm font-medium text-foreground mb-3">
+                ID card preview (photo)
+              </p>
+              <EmployeeIdCardView
+                employee={formIdCardPreview}
+                showDownload={false}
+                compact
+              />
+            </div>
+          )}
+          <FileUploadField
+            label="Aadhar Card (upload scan/photo)"
+            value={form.aadharCardImage}
+            onChange={(dataUrl) => setForm((p) => ({ ...p, aadharCardImage: dataUrl }))}
+          />
           <div>
             <p className="text-sm font-medium text-foreground mb-2">Training duration period</p>
             <div className="grid grid-cols-1 gap-3">
@@ -352,7 +457,7 @@ export default function Employees() {
         </div>
       </SlidePanel>
 
-      {openCard && cardEmployee && (
+      {openCard && cardEmployeeDisplay && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div className="bg-card rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto border border-border shadow-2xl">
             <div className="flex justify-between items-center mb-4">
@@ -361,7 +466,7 @@ export default function Employees() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <EmployeeIdCardView employee={cardEmployee} />
+            <EmployeeIdCardView employee={cardEmployeeDisplay} />
           </div>
         </div>
       )}

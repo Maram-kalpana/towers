@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Eye, EyeOff, LogIn, CheckCircle2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png";
+import AppLogo from "../components/AppLogo";
 
 export default function Login() {
   const { login } = useAuth();
@@ -41,9 +41,7 @@ export default function Login() {
           <div className="max-w-md">
             {/* Logo + Title */}
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-white flex items-center justify-center shadow-lg p-2">
-                <img src={logo} alt="logo" className="w-full h-full object-contain" />
-              </div>
+              <AppLogo size="lg" variant="dark" />
 
               <h1 className="text-2xl font-bold text-white">
                 Towers
@@ -87,9 +85,7 @@ export default function Login() {
 
             {/* Logo + Title */}
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-md p-2">
-                <img src={logo} alt="logo" className="w-full h-full object-contain" />
-              </div>
+              <AppLogo size="md" variant="light" />
 
               <h1 className="text-base font-semibold text-slate-900">
                 Towers

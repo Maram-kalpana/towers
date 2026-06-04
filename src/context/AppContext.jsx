@@ -33,6 +33,7 @@ function getInitialState() {
       workDetails: saved.workDetails ?? getDefaultWorkDetails(),
       employees: saved.employees ?? getDefaultEmployees(),
       attendance: saved.attendance ?? getDefaultAttendance(),
+      expenses: saved.expenses ?? [],
       reports: {
         ...emptyReports(),
         ...saved.reports,
@@ -44,6 +45,7 @@ function getInitialState() {
     workDetails: getDefaultWorkDetails(),
     employees: getDefaultEmployees(),
     attendance: getDefaultAttendance(),
+    expenses: [],
     reports: emptyReports(),
   };
 }
@@ -65,6 +67,7 @@ export const AppProvider = ({ children }) => {
   const [workDetails, setWorkDetails] = useState(initialRef.current.workDetails);
   const [employees, setEmployees] = useState(initialRef.current.employees);
   const [attendance, setAttendance] = useState(initialRef.current.attendance);
+  const [expenses, setExpenses] = useState(initialRef.current.expenses);
   const [reports] = useState(initialRef.current.reports);
 
   useEffect(() => {
@@ -75,10 +78,11 @@ export const AppProvider = ({ children }) => {
         workDetails,
         employees,
         attendance,
+        expenses,
         reports,
       })
     );
-  }, [projects, workDetails, employees, attendance, reports]);
+  }, [projects, workDetails, employees, attendance, expenses, reports]);
 
   const value = useMemo(
     () => ({
@@ -90,8 +94,10 @@ export const AppProvider = ({ children }) => {
       setEmployees,
       attendance,
       setAttendance,
+      expenses,
+      setExpenses,
     }),
-    [projects, workDetails, employees, attendance]
+    [projects, workDetails, employees, attendance, expenses]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
